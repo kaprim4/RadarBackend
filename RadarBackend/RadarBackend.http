@@ -1,0 +1,6 @@
+@RadarBackend_HostAddress = http://localhost:5058
+
+GET {{RadarBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

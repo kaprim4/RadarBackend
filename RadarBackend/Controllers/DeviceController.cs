@@ -1,12 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Domain.DTOs;
+using Domain.Helper;
+using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using RadarBackend.Models;
-using RadarBackend.Services;
+using Microsoft.EntityFrameworkCore;
+using Services.DeviceService;
 
 namespace RadarBackend.Controllers
 {
     [ApiController]
     [Route("api/devices")]
+    [Authorize]
     public class DeviceController : ControllerBase
     {
         private readonly IDeviceService _deviceService;
@@ -16,17 +21,16 @@ namespace RadarBackend.Controllers
             _deviceService = deviceService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Device>>> GetAllDevices()
+        [HttpPost("List")]
+        public async Task<ActionResult<ResponseModel<DeviceDTO>>> List(PagableDTO<DeviceDTO> pagable)
         {
-            var devices = await _deviceService.GetAllDevicesAsync();
-            return Ok(devices);
+            return Ok(await _deviceService.List(pagable));
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Device>> GetDeviceById(int id)
+        [HttpGet("{serialNumber}")]
+        public async Task<ActionResult<Device>> GetById(string serialNumber)
         {
-            var device = await _deviceService.GetDeviceByIdAsync(id);
+            DeviceDTO device = await _deviceService.GetById(serialNumber);
             if (device == null)
             {
                 return NotFound();
@@ -34,33 +38,27 @@ namespace RadarBackend.Controllers
             return Ok(device);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Device>> CreateDevice(Device device)
+        [HttpPost("Add")]
+        public async Task<ActionResult<Device>> Add(DeviceDTO device)
         {
-            var createdDevice = await _deviceService.CreateDeviceAsync(device);
-            return CreatedAtAction(nameof(GetDeviceById), new { id = createdDevice.Id }, createdDevice);
+            var response = await _deviceService.Add(device);
+            return Ok(response);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDevice(int id, Device device)
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdateDevice(DeviceDTO device)
         {
-            var result = await _deviceService.UpdateDeviceAsync(id, device);
-            if (!result)
-            {
-                return NotFound();
-            }
-            return NoContent();
+            var response = await _deviceService.Update(device);
+            
+            return Ok(response);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDevice(int id)
+        [HttpDelete("Delete/{serialNumber}")]
+        public async Task<IActionResult> DeleteDevice(string serialNumber)
         {
-            var result = await _deviceService.DeleteDeviceAsync(id);
-            if (!result)
-            {
-                return NotFound();
-            }
-            return NoContent();
+            var result = await _deviceService.Delete(serialNumber);
+            
+            return Ok(result);
         }
     }
 }

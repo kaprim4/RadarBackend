@@ -1,12 +1,17 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿
+using AutoMapper.Execution;
+using Domain.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RadarBackend.Models;
-using RadarBackend.Services;
+using Services.Auth;
+using System.Xml.Linq;
+using System;
 
 namespace RadarBackend.Controllers
 {
     [ApiController]
     [Route("api/users")]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -16,7 +21,11 @@ namespace RadarBackend.Controllers
             _userService = userService;
         }
 
-        [HttpGet]
-        public IActionResult GetAll() => Ok(_userService.GetAll());
+        [HttpPost("List")]
+        public async Task<IActionResult> GetAll(PagableDTO<UserDTO> pagable) {
+            var resp = await _userService.List(pagable);
+            return Ok(resp);
+        }
     }
 }
+
